@@ -7,7 +7,7 @@
 
 ## Configuration
 1) Rename "client-template.json" in the src/config folder to "client.json".  
-2) Add your key from your discord app in where it says <INSERT TOKEN HERE>
+2) Add your key from your discord app in where it says \<INSERT TOKEN HERE\>
 
 ## Build
 1) Download this repo  
@@ -20,5 +20,5 @@
 This bot uses Scryfall syntax, which can be found here: https://scryfall.com/docs/syntax
 
 To get a list of bot commands, type !help in the chat box and the bot will return a list of all valid commands.  
-To serach for a card to get the gatherer information wrap your search inquiry like so: [[<CARDNAME> <additional syntax>]].  
-To serach for a card to get the EDHRec information wrap your search inquiry like so: {{<CARDNAME>}}. Additional syntax is not used for this option.  
+To serach for a card to get the gatherer information wrap your search inquiry like so: [[\<CARDNAME\> \<additional syntax\>]].  
+To serach for a card to get the EDHRec information wrap your search inquiry like so: {{\<CARDNAME\>}}. Additional syntax is not used for this option.  
