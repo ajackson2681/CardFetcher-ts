@@ -5,7 +5,11 @@ export function log(message: string) {
 }
 
 export function dateLog(message: string) {
-    fs.appendFileSync("log/bot.log", "["+new Date().toLocaleTimeString()+"] "+message+"\n");
+    const dateObj = new Date();
+    const date = dateObj.toLocaleDateString();
+    const time = dateObj.toLocaleTimeString();
+    const timeStamp = `[${date} ${time}]`
+    fs.appendFileSync("log/bot.log",`${timeStamp} - ${message}`);
 }
 
 export function chatLog(message: string) {
