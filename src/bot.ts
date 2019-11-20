@@ -77,10 +77,10 @@ function performCommand(message: Message,
 
     let command = msg.substring(1, msg.indexOf(" ")) === "!" ? msg.substring(1) :
         msg.substring(1, msg.indexOf(" "));
-
+        
     log(message.author.username + " peformed a command:");
     try {
-        switch(command) {
+        switch(command.toLowerCase()) {
             case "kw":
                 dateLog("Requested keyword rules for: "+msg.split("!kw").pop());
                 let keyword = keywords.getRulesText(msg.split("!kw").pop());
@@ -94,6 +94,9 @@ function performCommand(message: Message,
                 dateLog("Rolled a number.");
                 let number = +msg.split("!roll").pop();
                 rollRandomNumber(number, channel);
+                break;
+            case "legalities":
+                scryfall.search(msg.split("!legalities").pop(), channel, false, true);
                 break;
             default:
                 break;

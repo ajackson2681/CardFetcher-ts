@@ -124,7 +124,8 @@ interface CardMessageObject {
  */
 export function search(card: string, 
         channel: TextChannel | DMChannel | GroupDMChannel,
-        edhRecSearch: boolean): void {
+        edhRecSearch: boolean,
+        legalities?: boolean): void {
 
     let encodedCard = encodeURI(card);
 
@@ -139,13 +140,35 @@ export function search(card: string,
 
             try {
                 const index = pickBest(card, cardList);
-                sendCard(channel, edhRecSearch, cardList[index]);
+                if(!legalities) {
+                    sendCard(channel, edhRecSearch, cardList[index]);
+                }
+                else {
+                    sendLegalities(channel, cardList[index]);
+                }
             }
             catch(err) {
                 channel.send("Unable to find the card as searched.");
             }
         });
     });
+}
+
+function sendLegalities(channel: TextChannel | DMChannel | GroupDMChannel, matchedCard: ScryfallCardObject) {
+
+    let legaityString: string = "";
+
+    for(const key of Object.keys(matchedCard.legalities)) {
+        const legal = matchedCard.legalities[key] === "legal" ? "legal" :"not legal";
+        legaityString += `${key}: ${legal}\n`;
+    }
+
+    let data = {
+        title: `${matchedCard.name} - Legalities`,
+        description: legaityString
+    };
+
+    channel.send(new RichEmbed(data));
 }
 
 function sendCard(channel: TextChannel | DMChannel | GroupDMChannel,
