@@ -55,7 +55,7 @@ export function search(card: string,
                 const cardName = resData.data[index].name;
 
                 const isCommander = 
-                    resData.data[index].type_line.includes("Legendary") || 
+                    resData.data[index].type_line.includes("Legendary Creature") || 
                     resData.data[index].oracle_text.includes("can be your commander.");
 
                 const multiverseId = resData.data[index].multiverse_ids[0];
