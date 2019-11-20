@@ -164,7 +164,7 @@ function sendLegalities(channel: TextChannel | DMChannel | GroupDMChannel, match
     let legaityString: string = "";
 
     for(const key of Object.keys(matchedCard.legalities)) {
-        const legal = matchedCard.legalities[key] === "legal" ? "legal" :"not legal";
+        const legal = (matchedCard.legalities[key] as string).replace(new RegExp("_", "g"), " ");
         legaityString += `${key}: ${legal}\n`;
     }
 
