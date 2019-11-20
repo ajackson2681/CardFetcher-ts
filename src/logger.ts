@@ -9,7 +9,7 @@ export function dateLog(message: string) {
     const date = dateObj.toLocaleDateString();
     const time = dateObj.toLocaleTimeString();
     const timeStamp = `[${date} ${time}]`
-    fs.appendFileSync("log/bot.log",`${timeStamp} - ${message}`);
+    fs.appendFileSync("log/bot.log",`${timeStamp} - ${message}\n`);
 }
 
 export function chatLog(message: string) {
