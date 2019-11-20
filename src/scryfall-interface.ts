@@ -124,8 +124,7 @@ interface CardMessageObject {
  */
 export function search(card: string, 
         channel: TextChannel | DMChannel | GroupDMChannel,
-        edhRecSearch: boolean,
-        legalities?: boolean): void {
+        searchLocation: string): void {
 
     let encodedCard = encodeURI(card);
 
@@ -140,11 +139,17 @@ export function search(card: string,
 
             try {
                 const index = pickBest(card, cardList);
-                if(!legalities) {
-                    sendCard(channel, edhRecSearch, cardList[index]);
-                }
-                else {
-                    sendLegalities(channel, cardList[index]);
+
+                switch(searchLocation) {
+                    case "gatherer":
+                        sendCard(channel, false, cardList[index]);
+                        break;
+                    case "edhrec":
+                        sendCard(channel, true, cardList[index]);
+                        break;
+                    case "legalities":
+                        sendLegalities(channel, cardList[index]);
+                        break;
                 }
             }
             catch(err) {
@@ -244,7 +249,7 @@ export function searchGatherer(cards: string[],
     channel: TextChannel | DMChannel | GroupDMChannel): void {
 
     for(const card of cards) {
-        search(card, channel, false);
+        search(card, channel, "gatherer");
     }
 }
 
@@ -258,6 +263,20 @@ export function searchEDHRec(cards: string[],
     channel: TextChannel | DMChannel | GroupDMChannel): void {
 
     for(const card of cards) {
-        search(card, channel, true);
+        search(card, channel, "edhrec");
+    }
+}
+
+/**
+ * This function uses the Scryfall API to retrieve legality information for the specified cards.
+ * 
+ * @param cards are the list of cards to search legalities for
+ * @param channel is the channel to send the returned information to.
+ */
+export function searchLegalities(cards: string[], 
+    channel: TextChannel | DMChannel | GroupDMChannel): void {
+
+    for(const card of cards) {
+        search(card, channel, "legalities");
     }
 }

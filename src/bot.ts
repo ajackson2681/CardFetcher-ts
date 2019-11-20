@@ -63,6 +63,11 @@ function parse(msg: Message): void {
         cards = strings.substringsBetween("{{", "}}", rawMsg);
         scryfall.searchEDHRec(cards, msg.channel);
     }
+
+    if (rawMsg.includes("<<") && rawMsg.includes(">>")) {
+        cards = strings.substringsBetween("<<", ">>", rawMsg);
+        scryfall.searchLegalities(cards, msg.channel);
+    }
 }
 
 /**
@@ -94,9 +99,6 @@ function performCommand(message: Message,
                 dateLog("Rolled a number.");
                 let number = +msg.split("!roll").pop();
                 rollRandomNumber(number, channel);
-                break;
-            case "legalities":
-                scryfall.search(msg.split("!legalities").pop(), channel, false, true);
                 break;
             default:
                 break;
