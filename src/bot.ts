@@ -1,6 +1,6 @@
 import { Client, Message, GroupDMChannel, DMChannel, TextChannel } from "discord.js";
 import * as strings from "./string-utils";
-import * as scryfall from "./scryfall-api";
+import * as scryfall from "./scryfall-interface";
 import * as fs from "fs";
 import * as keywords from "./keyword-parser";
 import { log, dateLog, chatLog } from "./logger";
