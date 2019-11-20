@@ -136,9 +136,9 @@ export function search(card: string,
         }).on("end", () => {
                         
             const cardList: ScryfallCardObject[] = JSON.parse(chunks.join(""))["data"];
-            const index = pickBest(card, cardList);
 
             try {
+                const index = pickBest(card, cardList);
                 sendCard(channel, edhRecSearch, cardList[index]);
             }
             catch(err) {
