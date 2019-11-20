@@ -9,5 +9,9 @@ export function dateLog(message: string) {
 }
 
 export function chatLog(message: string) {
-    fs.appendFileSync("log/chat.log", "["+new Date().toLocaleTimeString()+"] "+message+"\n");
+    const dateObj = new Date();
+    const date = dateObj.toLocaleDateString();
+    const time = dateObj.toLocaleTimeString();
+    const timeStamp = `[${date} ${time}]`
+    fs.appendFileSync("log/chat.log", `${timeStamp} ${message}\n`);
 }
