@@ -77,7 +77,7 @@ export function search(card: string,
                     title: title,
                     requestedCard: card
                 }
-                dateLog("- "+cardName);
+                dateLog(cardName);
                 const message = format(messageData);
                 channel.send(message);
             }
