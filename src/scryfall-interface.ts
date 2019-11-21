@@ -4,6 +4,7 @@ import { IncomingMessage } from "http";
 import { TextChannel, DMChannel, GroupDMChannel, RichEmbed } from "discord.js";
 import { levenshtein } from "underscore.string"
 import { dateLog } from "./logger";
+const distance = require("jaro-winkler");
 
 const endpoint = "https://api.scryfall.com/cards/search?q=";
 
@@ -151,9 +152,12 @@ export function search(card: string,
                         sendLegalities(channel, cardList[index]);
                         break;
                 }
+
+                dateLog(cardList[index].name);
             }
             catch(err) {
                 channel.send("Unable to find the card as searched.");
+                console.log(err);
             }
         });
     });
@@ -228,15 +232,24 @@ function pickBest(cardName: string,  scryfallList: ScryfallCardObject[]): number
 
     let min = Number.POSITIVE_INFINITY;
     let index = 0;
-    
-    for(let i = 0; i < scryfallList.length; i++) {
-        if(levenshtein(cardName, scryfallList[i].name) < min) {
-            min = levenshtein(cardName, scryfallList[i].name);
+    let filteredList: ScryfallCardObject[] = [];
+
+    for(const card of scryfallList) {
+        const num = distance(card.name.toLowerCase(), cardName.toLowerCase());
+        if(num > .8) {
+            filteredList.push(card);
+        }
+    }
+
+    for(let i = 0; i < filteredList.length; i++) {
+        const levDist = levenshtein(cardName.toLowerCase(), filteredList[i].name.toLowerCase());
+        if(levDist < min) {
+            min = levDist;
             index = i;
         }
     }
 
-    return index;
+    return scryfallList.indexOf(filteredList[index]);
 }
 
 /**
