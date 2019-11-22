@@ -18,6 +18,11 @@ function printHelp(channel: TextChannel | DMChannel | GroupDMChannel): void {
     "{{cardname}} returns card information from EDHREC, and also puts the card image in"
     + " the chat.\n\n" +
 
+    "<<cardname>> returns card legality information.\n\n"+
+
+    "((cardname)) returns card pricing from TCGPlayer, and also puts the card image in"
+    + " the chat.\n\n" +
+
     "If you desire a specific set image, insert e:SET inside the brackets and after the"
     + " card name, using the 3 letter set code instead of the word SET.\n\n" +
 
@@ -56,17 +61,22 @@ function parse(msg: Message): void {
 
     if (rawMsg.includes("[[") && rawMsg.includes("]]")) {
         cards = strings.substringsBetween("[[","]]", rawMsg);
-        scryfall.searchGatherer(cards, msg.channel);
+        scryfall.searchQuery(cards, msg.channel, scryfall.SearchTargets.Gatherer);
     }
     
     if (rawMsg.includes("{{") && rawMsg.includes("}}")) {
         cards = strings.substringsBetween("{{", "}}", rawMsg);
-        scryfall.searchEDHRec(cards, msg.channel);
+        scryfall.searchQuery(cards, msg.channel, scryfall.SearchTargets.EDHRec);
     }
 
     if (rawMsg.includes("<<") && rawMsg.includes(">>")) {
         cards = strings.substringsBetween("<<", ">>", rawMsg);
-        scryfall.searchLegalities(cards, msg.channel);
+        scryfall.searchQuery(cards, msg.channel, scryfall.SearchTargets.Legalities);
+    }
+
+    if(rawMsg.includes("((") && rawMsg.includes("))")) {
+        cards = strings.substringsBetween("((", "))", rawMsg);
+        scryfall.searchQuery(cards, msg.channel, scryfall.SearchTargets.Pricing)
     }
 }
 

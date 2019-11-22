@@ -8,6 +8,13 @@ const distance = require("jaro-winkler");
 
 const endpoint = "https://api.scryfall.com/cards/search?q=";
 
+export enum SearchTargets {
+    EDHRec = "edhrec",
+    Gatherer = "gatherer",
+    Pricing = "pricing",
+    Legalities = "legalities"
+}
+
 /**
  * This interface serves as the structure for the card information returned from
  * the Scryfall API.
@@ -151,6 +158,9 @@ export function search(card: string,
                     case "legalities":
                         sendLegalities(channel, cardList[index]);
                         break;
+                    case "pricing":
+                        sendPricing(channel, cardList[index]);
+                        break;
                 }
 
                 dateLog(cardList[index].name);
@@ -253,43 +263,33 @@ function pickBest(cardName: string,  scryfallList: ScryfallCardObject[]): number
 }
 
 /**
- * This function uses the Scryfall API to retrieve official rulings for the specified cards.
+ * This is a generalized version of the searchX functions that were previously used to reduce
+ * code redundancy.
  * 
- * @param cards are the list of cards to search Gatherer for
- * @param channel is the channel to send the returned information to.
+ * @param cards are the cards to search for
+ * @param channel is the channel to send the relevant information to
+ * @param target is the type of request being made. It's specified by the SearchTargets enum
  */
-export function searchGatherer(cards: string[], 
-    channel: TextChannel | DMChannel | GroupDMChannel): void {
-
+export function searchQuery(cards: string[], channel: TextChannel | DMChannel | GroupDMChannel, target: string) {
     for(const card of cards) {
-        search(card, channel, "gatherer");
+        search(card, channel, target);
     }
 }
 
 /**
- * This function uses the Scryfall API to retrieve EDHREC information for the specified cards.
+ * This function sends the pricing information to the specified channel.
  * 
- * @param cards are the list of cards to search EDHREC for
- * @param channel is the channel to send the returned information to.
+ * @param channel is the channel to send the pricing information to
+ * @param card is the card to retrieve pricing information for
  */
-export function searchEDHRec(cards: string[], 
-    channel: TextChannel | DMChannel | GroupDMChannel): void {
-
-    for(const card of cards) {
-        search(card, channel, "edhrec");
+function sendPricing(channel: TextChannel | DMChannel | GroupDMChannel, card: ScryfallCardObject) {
+    let data = {
+        title: `${card.name} - TCGPlayer pricing`,
+        url: card.purchase_uris.tcgplayer,
+        image: {
+            url: card.image_uris.png
+        }
     }
-}
 
-/**
- * This function uses the Scryfall API to retrieve legality information for the specified cards.
- * 
- * @param cards are the list of cards to search legalities for
- * @param channel is the channel to send the returned information to.
- */
-export function searchLegalities(cards: string[], 
-    channel: TextChannel | DMChannel | GroupDMChannel): void {
-
-    for(const card of cards) {
-        search(card, channel, "legalities");
-    }
+    channel.send(new RichEmbed(data));
 }
