@@ -92,13 +92,14 @@ function performCommand(message: Message,
 
     let command = msg.substring(1, msg.indexOf(" ")) === "!" ? msg.substring(1) :
         msg.substring(1, msg.indexOf(" "));
-        
+    let parameter = msg.split(`!${command}`).pop();
+
     log(message.author.username + " peformed a command:");
     try {
         switch(command.toLowerCase()) {
             case "kw":
-                log("Requested keyword rules for: "+msg.split("!kw").pop(), true);
-                let keyword = keywords.getRulesText(msg.split("!kw").pop());
+                log("Requested keyword rules for: "+parameter, true);
+                let keyword = keywords.getRulesText(parameter);
                 channel.send(keyword);
                 break;
             case "help":
@@ -107,7 +108,7 @@ function performCommand(message: Message,
                 break;
             case "roll":
                 log("Rolled a number.", true);
-                let number = +msg.split("!roll").pop();
+                let number = +parameter;
                 rollRandomNumber(number, channel);
                 break;
             default:
