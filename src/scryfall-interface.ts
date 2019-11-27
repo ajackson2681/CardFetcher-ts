@@ -2,7 +2,6 @@
 import * as http from "https";
 import { IncomingMessage } from "http";
 import { TextChannel, DMChannel, GroupDMChannel, RichEmbed } from "discord.js";
-import { levenshtein } from "underscore.string"
 import { dateLog } from "./logger";
 const distance = require("jaro-winkler");
 
@@ -146,24 +145,24 @@ export function search(card: string,
             const cardList: ScryfallCardObject[] = JSON.parse(chunks.join(""))["data"];
 
             try {
-                const index = pickBest(card, cardList);
-
+                const cardToSend = pickBest(card, cardList);
+    
                 switch(searchLocation) {
                     case "gatherer":
-                        sendCard(channel, false, cardList[index]);
+                        sendCard(channel, false, cardToSend);
                         break;
                     case "edhrec":
-                        sendCard(channel, true, cardList[index]);
+                        sendCard(channel, true, cardToSend);
                         break;
                     case "legalities":
-                        sendLegalities(channel, cardList[index]);
+                        sendLegalities(channel, cardToSend);
                         break;
                     case "pricing":
-                        sendPricing(channel, cardList[index]);
+                        sendPricing(channel, cardToSend);
                         break;
                 }
 
-                dateLog(cardList[index].name);
+                dateLog(cardToSend.name);
             }
             catch(err) {
                 channel.send("Unable to find the card as searched.");
@@ -238,28 +237,20 @@ function format(cardData: CardMessageObject): RichEmbed {
  * @param cardName is the card name being checked for.
  * @param scryfallList is the list of cards returned from the GET request from the Scryfall API
  */
-function pickBest(cardName: string,  scryfallList: ScryfallCardObject[]): number {
+function pickBest(cardName: string,  scryfallList: ScryfallCardObject[]): ScryfallCardObject {
 
-    let min = Number.POSITIVE_INFINITY;
+    let max = Number.NEGATIVE_INFINITY;
     let index = 0;
-    let filteredList: ScryfallCardObject[] = [];
 
-    for(const card of scryfallList) {
+    scryfallList.forEach( (card, i) => {
         const num = distance(card.name.toLowerCase(), cardName.toLowerCase());
-        if(num > .8) {
-            filteredList.push(card);
-        }
-    }
-
-    for(let i = 0; i < filteredList.length; i++) {
-        const levDist = levenshtein(cardName.toLowerCase(), filteredList[i].name.toLowerCase());
-        if(levDist < min) {
-            min = levDist;
+        if(num > max) {
+            max = num;
             index = i;
         }
-    }
+    });
 
-    return scryfallList.indexOf(filteredList[index]);
+    return scryfallList[index];
 }
 
 /**
