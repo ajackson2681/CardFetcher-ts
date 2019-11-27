@@ -2,11 +2,15 @@
 import * as http from "https";
 import { IncomingMessage } from "http";
 import { TextChannel, DMChannel, GroupDMChannel, RichEmbed } from "discord.js";
-import { dateLog } from "./logger";
+import { log } from "./logger";
 const distance = require("jaro-winkler");
 
 const endpoint = "https://api.scryfall.com/cards/search?q=";
 
+/**
+ * This enum serves as a list of valid search targets, which allows
+ * IntelliSense to auto-complete
+ */
 export enum SearchTargets {
     EDHRec = "edhrec",
     Gatherer = "gatherer",
@@ -162,7 +166,7 @@ export function search(card: string,
                         break;
                 }
 
-                dateLog(cardToSend.name);
+                log(cardToSend.name, true);
             }
             catch(err) {
                 channel.send("Unable to find the card as searched.");
@@ -172,6 +176,12 @@ export function search(card: string,
     });
 }
 
+/**
+ * This function sends a list of legalities to the specified channel for the matched card.
+ * 
+ * @param channel is the channel to send the legality information to
+ * @param matchedCard is the card to sesarch legalities for
+ */
 function sendLegalities(channel: TextChannel | DMChannel | GroupDMChannel, matchedCard: ScryfallCardObject) {
 
     let legaityString: string = "";
@@ -189,6 +199,14 @@ function sendLegalities(channel: TextChannel | DMChannel | GroupDMChannel, match
     channel.send(new RichEmbed(data));
 }
 
+/**
+ * This function sends the matchedCard info to the specified channel, using either
+ * information from edhrec or gatherer, depedning on if edhRecSearch is true/false.
+ * 
+ * @param channel is the channel to send the card information to
+ * @param edhRecSearch specifies whether or not this is an EDHRec search
+ * @param matchedCard is the card information to send to the channel.
+ */
 function sendCard(channel: TextChannel | DMChannel | GroupDMChannel,
         edhRecSearch: boolean, matchedCard: ScryfallCardObject) {
 
@@ -209,7 +227,7 @@ function sendCard(channel: TextChannel | DMChannel | GroupDMChannel,
         title: title
     }
 
-    dateLog(cardName);
+    log(cardName, true);
     const message = format(messageData);
     channel.send(message);
 }

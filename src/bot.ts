@@ -3,7 +3,7 @@ import * as strings from "./string-utils";
 import * as scryfall from "./scryfall-interface";
 import * as fs from "fs";
 import * as keywords from "./keyword-parser";
-import { log, dateLog, chatLog } from "./logger";
+import { log, chatLog } from "./logger";
 
 /**
  * This function prints the help prompt.
@@ -97,16 +97,16 @@ function performCommand(message: Message,
     try {
         switch(command.toLowerCase()) {
             case "kw":
-                dateLog("Requested keyword rules for: "+msg.split("!kw").pop());
+                log("Requested keyword rules for: "+msg.split("!kw").pop(), true);
                 let keyword = keywords.getRulesText(msg.split("!kw").pop());
                 channel.send(keyword);
                 break;
             case "help":
-                dateLog("Asked for help.");
+                log("Asked for help.", true);
                 printHelp(channel);
                 break;
             case "roll":
-                dateLog("Rolled a number.");
+                log("Rolled a number.", true);
                 let number = +msg.split("!roll").pop();
                 rollRandomNumber(number, channel);
                 break;
