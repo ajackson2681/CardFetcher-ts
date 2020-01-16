@@ -41,7 +41,9 @@ export function substringsBetween(prefix: string, suffix: string, msg: string): 
  * @param msg is the message to check if there is a proper prefix/suffix in it
  */
 export function hasPrefixSuffix(msg: string): boolean {
-    let hasPrefix = msg.includes("[[") || msg.includes("{{") || msg.includes("<<") ? true : false;
-    let hasSuffix = msg.includes("]]") || msg.includes("}}") || msg.includes(">>") ? true : false;
+    let hasPrefix = msg.includes("[[") || msg.includes("{{") || msg.includes("<<") 
+        || msg.includes("((") ? true : false;
+    let hasSuffix = msg.includes("]]") || msg.includes("}}") || msg.includes(">>") 
+        || msg.includes("))") ? true : false;
     return (hasSuffix && hasPrefix);
 }

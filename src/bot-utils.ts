@@ -133,7 +133,6 @@ function sendCard(channel: TextChannel | DMChannel | GroupDMChannel,
         title: title
     }
 
-    log(cardName, true);
     const message = format(messageData);
     channel.send(message);
 }
