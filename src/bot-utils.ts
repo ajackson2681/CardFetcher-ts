@@ -2,7 +2,6 @@
 import * as http from "https";
 import { IncomingMessage } from "http";
 import { TextChannel, DMChannel, GroupDMChannel, RichEmbed } from "discord.js";
-import { log } from "./logger";
 import { ScryfallCardObject } from "./scryfall-interface";
 
 const distance = require("jaro-winkler");
@@ -70,8 +69,6 @@ export function search(card: string,
                         sendPricing(channel, cardToSend);
                         break;
                 }
-
-                log(cardToSend.name, true);
             }
             catch(err) {
                 channel.send("Unable to find the card as searched.");

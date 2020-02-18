@@ -3,7 +3,6 @@ import * as strings from "./string-utils";
 import * as scryfall from "./bot-utils";
 import * as fs from "fs";
 import * as keywords from "./keyword-parser";
-import { log, chatLog } from "./logger";
 
 /**
  * This function prints the help prompt.
@@ -57,8 +56,6 @@ function parse(msg: Message): void {
     let cards: string[];
     let rawMsg = msg.content;
 
-    log(msg.author.username+" made a card request for:");
-
     if (rawMsg.includes("[[") && rawMsg.includes("]]")) {
         cards = strings.substringsBetween("[[","]]", rawMsg);
         scryfall.searchQuery(cards, msg.channel, scryfall.SearchTargets.Gatherer);
@@ -94,20 +91,16 @@ function performCommand(message: Message,
         msg.substring(1, msg.indexOf(" "));
     let parameter = msg.split(`!${command}`).pop();
 
-    log(message.author.username + " peformed a command:");
     try {
         switch(command.toLowerCase()) {
             case "kw":
-                log("Requested keyword rules for: "+parameter, true);
                 let keyword = keywords.getRulesText(parameter);
                 channel.send(keyword);
                 break;
             case "help":
-                log("Asked for help.", true);
                 printHelp(channel);
                 break;
             case "roll":
-                log("Rolled a number.", true);
                 let number = +parameter;
                 rollRandomNumber(number, channel);
                 break;
@@ -132,8 +125,6 @@ client.on("ready", () => {
 client.on("message", (msg: Message) => {
     
     if(!msg.author.bot) {
-        chatLog(msg.author.username+": "+msg.content);
-
         let rawMsg = msg.toString();
         
         if(rawMsg.startsWith("!")) {
