@@ -17,13 +17,14 @@ function printHelp(channel: TextChannel | DMChannel | GroupDMChannel): void {
     "{{cardname}} returns card information from EDHREC, and also puts the card image in"
     + " the chat.\n\n" +
 
-    "<<cardname>> returns card legality information.\n\n"+
+    "<<cardname>> returns card format legality information.\n\n"+
 
     "((cardname)) returns card pricing from TCGPlayer, and also puts the card image in"
     + " the chat.\n\n" +
 
     "If you desire a specific set image, insert e:SET inside the brackets and after the"
-    + " card name, using the 3 letter set code instead of the word SET.\n\n" +
+    + " card name, using the 3 letter set code instead of the word SET. Other syntax rules"
+    + " can be found at https://scryfall.com/docs/syntax.\n\n" +
 
     "!kw KEYWORD will return the keyword definition from the Comprehensive MTG Rulebook.\n\n" +
 
