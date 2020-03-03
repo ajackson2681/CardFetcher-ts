@@ -1,6 +1,4 @@
-
-import * as http from "https";
-import { IncomingMessage } from "http";
+import * as reqeuest from "request-promise-native";
 import { TextChannel, DMChannel, GroupDMChannel, RichEmbed } from "discord.js";
 import { ScryfallCardObject } from "./scryfall-interface";
 
@@ -37,45 +35,39 @@ interface CardMessageObject {
  * @param channel Is the message channel to send the returned information to
  * @param edhRecSearch Boolean value to determine if the search should return edhrec information or official rulings.
  */
-export function search(card: string, 
+export async function search(card: string, 
         channel: TextChannel | DMChannel | GroupDMChannel,
-        searchLocation: string): void {
+        searchLocation: string): Promise<void> {
 
     let encodedCard = encodeURI(card);
+    const options = {
+        uri: endpoint+encodedCard
+    }
 
-    http.get(endpoint+encodedCard, (incoming: IncomingMessage) => {
-        let chunks = []
+    try {
+        const result = await reqeuest.get(options);
+        const cardList: ScryfallCardObject[] = JSON.parse(result).data;
 
-        incoming.on("data", (chunk) => {
-            chunks.push(chunk);
-        }).on("end", () => {
-                        
-            const cardList: ScryfallCardObject[] = JSON.parse(chunks.join(""))["data"];
-
-            try {
-                const cardToSend = pickBest(card, cardList);
+        const cardToSend = pickBest(card, cardList);
     
-                switch(searchLocation) {
-                    case "gatherer":
-                        sendCard(channel, false, cardToSend);
-                        break;
-                    case "edhrec":
-                        sendCard(channel, true, cardToSend);
-                        break;
-                    case "legalities":
-                        sendLegalities(channel, cardToSend);
-                        break;
-                    case "pricing":
-                        sendPricing(channel, cardToSend);
-                        break;
-                }
-            }
-            catch(err) {
-                channel.send("Unable to find the card as searched.");
-                console.log(err);
-            }
-        });
-    });
+        switch(searchLocation) {
+            case "gatherer":
+                sendCard(channel, false, cardToSend);
+                break;
+            case "edhrec":
+                sendCard(channel, true, cardToSend);
+                break;
+            case "legalities":
+                sendLegalities(channel, cardToSend);
+                break;
+            case "pricing":
+                sendPricing(channel, cardToSend);
+                break;
+        }
+    }
+    catch(err) {
+        channel.send(`Unable to find the card ${card} as searched.`);
+    }
 }
 
 /**
