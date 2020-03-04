@@ -137,4 +137,11 @@ client.on("message", (msg: Message) => {
     }
 });
 
+client.on("error", () => {
+    client.destroy();
+    setTimeout(() => {
+        client.login(token);
+    }, 60000);
+});
+
 client.login(token);
