@@ -1,193 +1,17 @@
-import * as reqeuest from "request-promise-native";
-import { TextChannel, DMChannel, GroupDMChannel, RichEmbed } from "discord.js";
+import { Message, Channel, RichEmbed, GroupDMChannel, DMChannel, TextChannel } from "discord.js";
+import * as fetch from "node-fetch";
 import { ScryfallCardObject } from "./scryfall-interface";
-
 const distance = require("jaro-winkler");
 
-const endpoint = "https://api.scryfall.com/cards/search?q=";
+type DiscordChannel = TextChannel | DMChannel | GroupDMChannel;
 
-/**
- * This enum serves as a list of valid search targets, which allows
- * IntelliSense to auto-complete
- */
-export enum SearchTargets {
-    EDHRec = "edhrec",
-    Gatherer = "gatherer",
-    Pricing = "pricing",
-    Legalities = "legalities"
-}
+const scryfallEndpoint = "https://api.scryfall.com/cards/search?q=";
+const edhrecRegex = new RegExp(/(?<=\{\{)(.*?)(?=\}\})/g);
+const gathererRegex = new RegExp(/(?<=\[\[)(.*?)(?=\]\])/g);
+const legalityRegex = new RegExp(/(?<=\<\<)(.*?)(?=\>\>)/g);
+const pricingRegex = new RegExp(/(?<=\(\()(.*?)(?=\)\))/g);
 
-/**
- * This interface represents the structure of the card to send to a message channel
- * through the use of RichEmbed.
- */
-interface CardMessageObject {
-    imageURL: string;
-    informationURL: string;
-    title: string;
-}
-
-/**
- * This function performs a search on the Scryfall RESTful API with the given card name, and returns
- * relevant information.
- * 
- * @param card Is the name of the card to search for on scryfall
- * @param channel Is the message channel to send the returned information to
- * @param edhRecSearch Boolean value to determine if the search should return edhrec information or official rulings.
- */
-export async function search(card: string, 
-        channel: TextChannel | DMChannel | GroupDMChannel,
-        searchLocation: string): Promise<void> {
-
-    let encodedCard = encodeURI(card);
-    const options = {
-        uri: endpoint+encodedCard
-    }
-
-    try {
-        const result = await reqeuest.get(options);
-        const cardList: ScryfallCardObject[] = JSON.parse(result).data;
-
-        const cardToSend = pickBest(card, cardList);
-    
-        switch(searchLocation) {
-            case "gatherer":
-                sendCard(channel, false, cardToSend);
-                break;
-            case "edhrec":
-                sendCard(channel, true, cardToSend);
-                break;
-            case "legalities":
-                sendLegalities(channel, cardToSend);
-                break;
-            case "pricing":
-                sendPricing(channel, cardToSend);
-                break;
-        }
-    }
-    catch(err) {
-        channel.send(`Unable to find the card ${card} as searched.`);
-    }
-}
-
-/**
- * This function sends a list of legalities to the specified channel for the matched card.
- * 
- * @param channel is the channel to send the legality information to
- * @param matchedCard is the card to sesarch legalities for
- */
-function sendLegalities(channel: TextChannel | DMChannel | GroupDMChannel, 
-    matchedCard: ScryfallCardObject) {
-
-    let legaityString: string = "";
-
-    for(const key of Object.keys(matchedCard.legalities)) {
-        const legal = (matchedCard.legalities[key] as string).replace(new RegExp("_", "g"), " ");
-        legaityString += `${key}: ${legal}\n`;
-    }
-
-    let data = {
-        title: `${matchedCard.name} - Legalities`,
-        description: legaityString
-    };
-
-    channel.send(new RichEmbed(data));
-}
-
-/**
- * This function sends the matchedCard info to the specified channel, using either
- * information from edhrec or gatherer, depedning on if edhRecSearch is true/false.
- * 
- * @param channel is the channel to send the card information to
- * @param edhRecSearch specifies whether or not this is an EDHRec search
- * @param matchedCard is the card information to send to the channel.
- */
-function sendCard(channel: TextChannel | DMChannel | GroupDMChannel,
-        edhRecSearch: boolean, matchedCard: ScryfallCardObject) {
-
-    const cardName = matchedCard.name;
-    
-    const imageURL = matchedCard.image_uris.png;
-
-    const informationURL = edhRecSearch ? 
-        matchedCard.related_uris.edhrec :
-        matchedCard.related_uris.gatherer;
-
-    const title = edhRecSearch ? cardName + " - EDHREC Page" :
-        cardName + " - Gatherer Page";
-
-    const messageData: CardMessageObject = {
-        imageURL: imageURL,
-        informationURL: informationURL,
-        title: title
-    }
-
-    const message = format(messageData);
-    channel.send(message);
-}
-
-/**
- * This function formats the cardData into a RichEmbed message to be sent to a discord channel.
- * 
- * @param cardData Is the card data to format into a RichEmbed message.
- */
-function format(cardData: CardMessageObject): RichEmbed {
-    const data = {
-        title: cardData.title,
-        url: cardData.informationURL,
-        image: {
-            url: cardData.imageURL
-        }
-    };
-    
-    return new RichEmbed(data);
-}
-
-/**
- * This function returns the 'best' match for the searched query, based on its Levenshtein distance.
- * 
- * @param cardName is the card name being checked for.
- * @param scryfallList is the list of cards returned from the GET request from the Scryfall API
- */
-function pickBest(cardName: string,  scryfallList: ScryfallCardObject[]): ScryfallCardObject {
-
-    let max = Number.NEGATIVE_INFINITY;
-    let index = 0;
-
-    scryfallList.forEach( (card, i) => {
-        const num = distance(card.name.toLowerCase(), cardName.toLowerCase());
-        if(num > max) {
-            max = num;
-            index = i;
-        }
-    });
-
-    return scryfallList[index];
-}
-
-/**
- * This is a generalized version of the searchX functions that were previously used to reduce
- * code redundancy.
- * 
- * @param cards are the cards to search for
- * @param channel is the channel to send the relevant information to
- * @param target is the type of request being made. It's specified by the SearchTargets enum
- */
-export function searchQuery(cards: string[], channel: TextChannel | DMChannel | GroupDMChannel, 
-    target: string) {
-        
-    for(const card of cards) {
-        search(card, channel, target);
-    }
-}
-
-/**
- * This function sends the pricing information to the specified channel.
- * 
- * @param channel is the channel to send the pricing information to
- * @param card is the card to retrieve pricing information for
- */
-function sendPricing(channel: TextChannel | DMChannel | GroupDMChannel, card: ScryfallCardObject) {
+function sendPricingInfo(card: ScryfallCardObject, channel: DiscordChannel): void {
     let data = {
         title: `${card.name} - TCGPlayer pricing`,
         url: card.purchase_uris.tcgplayer,
@@ -197,4 +21,143 @@ function sendPricing(channel: TextChannel | DMChannel | GroupDMChannel, card: Sc
     }
 
     channel.send(new RichEmbed(data));
+}
+
+function sendLegalityInfo(card: ScryfallCardObject, channel: DiscordChannel): void {
+
+    let legaityString: string = "";
+
+    for(const key of Object.keys(card.legalities)) {
+        const legal = (card.legalities[key] as string).replace(new RegExp("_", "g"), " ");
+        legaityString += `${key}: ${legal}\n`;
+    }
+
+    let data = {
+        title: `${card.name} - Legalities`,
+        description: legaityString
+    };
+
+    channel.send(new RichEmbed(data));
+}
+
+function sendGathererInfo(card: ScryfallCardObject, channel: DiscordChannel): void {
+    const data = {
+        title: `${card.name} - Gatherer Page`,
+        url: card.related_uris.gatherer,
+        image: {
+            url: card.image_uris.png
+        }
+    }
+
+    const message = new RichEmbed(data);
+
+    channel.send(message);
+}
+
+function sendEdhrecInfo(card: ScryfallCardObject, channel: DiscordChannel): void {
+    const data = {
+        title: `${card.name} - EDHREC Page`,
+        url: card.related_uris.edhrec,
+        image: {
+            url: card.image_uris.png
+        }
+    }
+
+    const message = new RichEmbed(data);
+
+    channel.send(message);
+}
+
+function pickBest(cardName: string, cardList: ScryfallCardObject[]): ScryfallCardObject {
+
+    let max = Number.NEGATIVE_INFINITY;
+    let index = 0;
+
+    cardList.forEach( (card, i) => {
+        const num = distance(card.name.toLowerCase(), cardName.toLowerCase());
+        if(num > max) {
+            max = num;
+            index = i;
+        }
+    });
+
+    return cardList[index];
+}
+
+function fetchAndReturn(card: string, channel: DiscordChannel, mode: number) {
+    const encoded = encodeURI(card);
+    
+    fetch(scryfallEndpoint+encoded).then( (response) => response.json()).then( (scryfallResponse) => {
+        const cardList = scryfallResponse.data;
+        
+        if (cardList != null) {
+            const cardToSend = pickBest(card, cardList);
+
+            switch (mode) {
+                case 1:
+                    sendEdhrecInfo(cardToSend, channel);
+                    break;
+                case 2:
+                    sendGathererInfo(cardToSend, channel);
+                    break;
+                case 3:
+                    sendLegalityInfo(cardToSend, channel);
+                    break;
+                case 4:
+                    sendPricingInfo(cardToSend, channel);
+                    break;
+            }
+        }
+        else {
+            channel.send(`Unable to retrieve information for "${card}"`);
+        }
+    });
+}
+
+export function printHelp(channel: DiscordChannel): void {
+    channel.send(" These are the following commands I can perform:\n\n"
+    + "[[cardname]] returns card information from gatherer, and also puts the card image "
+    + "in the chat.\n\n" +
+
+    "{{cardname}} returns card information from EDHREC, and also puts the card image in"
+    + " the chat.\n\n" +
+
+    "<<cardname>> returns card format legality information.\n\n"+
+
+    "((cardname)) returns card pricing from TCGPlayer, and also puts the card image in"
+    + " the chat.\n\n" +
+
+    "If you desire a specific set image, insert e:SET inside the brackets and after the"
+    + " card name, using the 3 letter set code instead of the word SET. Other syntax rules"
+    + " can be found at https://scryfall.com/docs/syntax.");
+}
+
+export function searchForCards(message: Message): void {
+    const edhrecCards = message.toString().match(edhrecRegex);
+    if (edhrecCards) {
+        edhrecCards.forEach( (card) => {
+        fetchAndReturn(card, message.channel, 1); 
+        });
+    }
+
+    const gathererCards = message.toString().match(gathererRegex);
+    if (gathererCards) {
+        gathererCards.forEach( (card) => {
+            fetchAndReturn(card, message.channel, 2);
+        });
+    }
+
+    const legalityCards = message.toString().match(legalityRegex);
+    if (legalityCards) {
+        legalityCards.forEach( (card) => {
+            fetchAndReturn(card, message.channel, 3);
+        });
+    }
+
+    const pricingCards = message.toString().match(pricingRegex);
+    if (pricingCards) {
+        pricingCards.forEach( (card) => {
+            fetchAndReturn(card, message.channel, 4);
+        })
+    }
 }
