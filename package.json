@@ -15,7 +15,7 @@
     "@types/node": "^12.12.7",
     "discord.js": "^11.5.1",
     "jaro-winkler": "^0.2.8",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.7",
     "typescript": "^3.7.2"
   }
 }
